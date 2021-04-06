@@ -1,0 +1,19 @@
+{
+  "name": "mlt-archiver",
+  "version": "0.0.1",
+  "description": "An util to archive/unarchive mlt files and their dependencies",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo 'No tests'"
+  },
+  "keywords": [
+    "mlt",
+    "shotcut"
+  ],
+  "author": "Adriano Valente <me@dri.cool>",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "xml2json": "^0.12.0"
+  }
+}
