@@ -1,0 +1,11 @@
+<?xml version="1.0" standalone="no"?>
+<mlt LC_NUMERIC="C" version="6.25.0" title="Shotcut version 21.01.29" producer="main_bin">
+  <profile description="automatic" width="1920" height="1080" progressive="0" sample_aspect_num="1" sample_aspect_den="1" display_aspect_num="16" display_aspect_den="9" frame_rate_num="30000" frame_rate_den="1001" colorspace="709"/>
+  <playlist id="playlist23">
+    <property name="shotcut:video">1</property>
+    <property name="shotcut:name">V23</property>
+    <entry producer="producer49" in="00:00:00.000" out="00:00:13.280"/>
+    <blank length="00:03:13.413"/>
+    <entry producer="producer50" in="00:00:00.000" out="00:00:17.484"/>
+  </playlist>
+</mlt>

@@ -1,8 +1,8 @@
 const fs = require('fs')
 const path = require('path')
 
+const convert = require('xml-js')
 const _ = require('lodash')
-const parser = require('xml2json')
 
 const Command = {
   ARCHIVE: 'archive',
@@ -54,109 +54,124 @@ function archiveFile (absolutePath, counter) {
   return `__MLT_ARCHIVER_RELATIVE_PATH__${__files[absolutePath]}`
 }
 
-function isFile (sourceDir, entry) {
-  if (entry.name !== 'resource') {
+function isAlias(sourceDir, item) {
+  if (!item.attributes || item.attributes.name !== 'resource') {
     return false
   }
 
-
-  const t = entry['$t']
-  if (fs.existsSync(t)) {
-    return t
-  }
-
-
-  if (fs.existsSync(path.join(sourceDir, t))) {
-    return path.join(sourceDir, t)
-  }
-
-
-  //return entry.name === 'resource' && fs.existsSync(entry['$t'])
-}
-
-function isAlias (dir, entry) {
-  if (entry.name !== 'resource') {
+  const element = _.find(item.elements, ({ type }) => type === 'text')
+  if (!element) {
     return false
   }
 
-  const t = entry['$t']
+  const t = element.text
 
   if (!t.match(/MLT_ARCHIVER_RELATIVE_PATH/)) {
     return false
   }
 
   const relativePath = t.replace('__MLT_ARCHIVER_RELATIVE_PATH__', '')
-  const absolutePath = path.join(dir, relativePath)
+  const absolutePath = path.join(sourceDir, relativePath)
 
   if (fs.existsSync(absolutePath)) {
     return absolutePath
   }
-
 }
 
-function mapProducer (sourceDirectory, producer) {
-  const { property } = producer
+function isFile(sourceDir, item) {
+  if (!item.attributes || item.attributes.name !== 'resource') {
+    return false
+  }
 
-  return {
-    ...producer,
-    property: property.map(entry => {
-      const file = isFile(sourceDirectory, entry)
-      if (file) {
+  const element = _.find(item.elements, ({ type }) => type === 'text')
+  if (!element) {
+    return false
+  }
 
-        // sorry for the side effect 🌈
-        entry['$t'] = archiveFile(file)
-      }
+  const t = element.text
 
-      return entry
-    })
-  
+  if (fs.existsSync(t)) {
+    return t
+  }
+
+  if (fs.existsSync(path.join(sourceDir, t))) {
+    return path.join(sourceDir, t)
   }
 }
 
-function remapProducer (relative, producer) {
-  const { property } = producer
+function recursiveMapItem(sourcePath, item) {
+  const file = isFile(sourcePath, item)
 
-  return {
-    ...producer,
-    property: property.map(entry => {
-      if (isAlias(relative, entry)) {
-        entry['$t'] = isAlias(relative, entry)
-      }
-
-      return entry
-    })
-  
+  if (file) {
+    return {
+      ...item,
+      elements: _.chain(item.elements)
+        .filter(({ type }) => type !== 'text')
+        .union([{
+          type: 'text',
+          text: archiveFile(file)
+        }])
+      .value()
+    }
   }
 
+  if (_.isEmpty(item.elements)) {
+    return item
+  }
 
+  return {
+    ...item,
+    elements: _.map(item.elements, i => recursiveMapItem(sourcePath, i))
+  }
+}
+
+function recursivelyRemapItem (sourcePath, item) {
+  const file = isAlias(sourcePath, item)
+
+  if (file) {
+    return {
+      ...item,
+      elements: _.chain(item.elements)
+      .filter(({ type }) => type !== 'text')
+      .union([{
+        type: 'text',
+        text: file
+      }])
+      .value()
+    }
+  }
+
+  if (_.isEmpty(item.elements)) {
+    return item
+  }
+
+  return {
+    ...item,
+    elements: _.map(item.elements, i => recursivelyRemapItem(sourcePath, i))
+  }
 }
 
 function unarchive (filePath) {
   const directory = path.join(filePath, '..')
-  console.log(directory)
-  const raw = fs.readFileSync(filePath, 'utf-8')
-  const content = JSON.parse(raw)
+  const sourceFileName = path.parse(filePath).name
+  const xml = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
 
-  content.mlt.producer = content.mlt.producer
-    .map(entry => typeof(entry) === 'object'
-      ? remapProducer(directory, entry)
-      : entry)
+  const content = recursivelyRemapItem(directory, xml)
 
-  fs.writeFileSync(path.join(directory, 'project.mlt'), parser.toXml(JSON.stringify(content)), 'utf-8')
-
-
+  fs.writeFileSync(path.join(directory, sourceFileName + '.mlt'), convert.js2xml(content, {
+    spaces: 2
+  }), 'utf-8')
 }
 
 async function archive (origin, destiny) {
-
   const sourceDirectory = path.join(origin, '..')
   const raw = fs.readFileSync(origin, 'utf-8')
-  const content = JSON.parse(parser.toJson(raw))
 
-  content.mlt.producer = content.mlt.producer
-    .map(entry => typeof(entry) === 'object'
-      ? mapProducer(sourceDirectory, entry)
-      : entry)
+  const xmlContent = convert.xml2js(raw, {
+    compact: false
+  })
+
+  const content = recursiveMapItem(sourceDirectory, xmlContent)
 
   for (const absoulte of Object.keys(__files)) {
     const relativePath = path.join(destiny, __files[absoulte])
@@ -166,9 +181,10 @@ async function archive (origin, destiny) {
   
   }
 
-  const projectFile = path.join(destiny, 'project.mlta')
-  fs.writeFileSync(projectFile, JSON.stringify(content, null, 2), 'utf-8')
+  const filename = path.parse(origin).name + '.mlta'
+  const projectFile = path.join(destiny, filename)
 
+  fs.writeFileSync(projectFile, JSON.stringify(content, null, 2), 'utf-8')
 }
 
 // aux
