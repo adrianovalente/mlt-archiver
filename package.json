@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "An util to archive/unarchive mlt files and their dependencies",
   "main": "index.js",
+  "bin": {
+    "mlt-archiver": "index.js"
+  },
   "scripts": {
     "test": "echo 'No tests'"
   },
