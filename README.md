@@ -9,7 +9,7 @@ Install `mlt-archiver` from the NPM Repository
 $ npm install --global mlt-archiver
 ```
 
-Go to the directory where your `.mlt` file is located and run the `arvhive` command. You need to point the directory where you want to create your archived repository.
+Go to the directory where your `.mlt` file is located and run the `arvhive` command. You need to point the directory where you want to create your archived folder.
 
 ``` shell
 $ mkdir -p ~/Movies/archived-movie

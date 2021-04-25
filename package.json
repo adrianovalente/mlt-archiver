@@ -1,7 +1,7 @@
 {
   "name": "mlt-archiver",
-  "version": "0.0.2",
-  "description": "An util to archive/unarchive mlt files and their dependencies",
+  "version": "0.0.3",
+  "description": "A tool to archive/unarchive mlt files and their dependencies",
   "main": "index.js",
   "bin": {
     "mlt-archiver": "index.js"
