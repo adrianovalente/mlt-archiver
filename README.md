@@ -19,7 +19,7 @@ Go to the directory where your `.mlt` file is located and run the `arvhive` comm
 mkdir ~/Desktop/Montando-Mesa-Archived
 
 # Run the command to archive
-node index.js archive ~/Desktop/Montando\ Mesa.mlt ~/Desktop/Montando-Mesa-Archived
+mlt-archiver archive ~/Desktop/Montando\ Mesa.mlt ~/Desktop/Montando-Mesa-Archived
 
 # Create a zip file
 zip -r -X -9 "Montando-mesa-archived.zip" ~/Desktop/Montando-Mesa-Archived
@@ -32,6 +32,6 @@ zip -r -X -9 "Montando-mesa-archived.zip" ~/Desktop/Montando-Mesa-Archived
 unzip ~/Downloads/Montando-mesa-archived.zip
 
 # Run the command to unarchive
-node index.js unarchive ~/Downloads/Montando-Mesa-Archived/Montando\ Mesa.mlta
+mlt-archiver unarchive ~/Downloads/Montando-Mesa-Archived/Montando\ Mesa.mlta
 ```
 
